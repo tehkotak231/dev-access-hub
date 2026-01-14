@@ -36,15 +36,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserData = async (userId: string) => {
     try {
-      // Fetch user role
+      // Fetch all user roles - prioritize admin role if exists
       const { data: roleData } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', userId)
-        .maybeSingle();
+        .eq('user_id', userId);
 
-      if (roleData) {
-        setRole(roleData.role as UserRole);
+      if (roleData && roleData.length > 0) {
+        // Check if user has admin role
+        const hasAdminRole = roleData.some(r => r.role === 'admin');
+        setRole(hasAdminRole ? 'admin' : (roleData[0].role as UserRole));
       }
 
       // Fetch approval status for developers
